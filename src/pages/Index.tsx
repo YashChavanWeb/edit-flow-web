@@ -6,6 +6,7 @@ import { FileExplorer } from '@/components/FileExplorer';
 import { PanelLayout } from '@/components/PanelLayout';
 import { KeyboardShortcuts } from '@/components/KeyboardShortcuts';
 import { AuthModal } from '@/components/AuthModal';
+import { CodeOutput } from '@/components/CodeOutput';
 import { v4 as uuidv4 } from 'uuid';
 
 export interface FileItem {
@@ -25,6 +26,7 @@ const Index = () => {
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(!isAuthenticated);
+  const [codeInput, setCodeInput] = useState('');
 
   // Initialize with sample files
   useEffect(() => {
@@ -58,17 +60,17 @@ const Index = () => {
     setActiveFileId(sampleFiles[0].id);
   }, []);
 
-  // Auto-save functionality
+  // Auto-save functionality - reduced frequency
   useEffect(() => {
     const interval = setInterval(() => {
       if (activeFileId) {
         toast({
           title: "Auto-saved",
           description: "Your changes have been saved automatically.",
-          duration: 2000,
+          duration: 1500,
         });
       }
-    }, 3000);
+    }, 30000); // Changed from 3s to 30s
 
     return () => clearInterval(interval);
   }, [activeFileId]);
@@ -173,6 +175,16 @@ const Index = () => {
     ));
   };
 
+  const renameFile = (fileId: string, newName: string) => {
+    setFiles(prev => prev.map(f => 
+      f.id === fileId ? { ...f, name: newName } : f
+    ));
+    toast({
+      title: "File Renamed",
+      description: `File renamed to ${newName}`,
+    });
+  };
+
   const getDefaultContent = (language: 'python' | 'java' | 'cpp'): string => {
     switch (language) {
       case 'python':
@@ -229,6 +241,7 @@ const Index = () => {
               onFileSelect={setActiveFileId}
               onCreateFile={createNewFile}
               onDeleteFile={deleteFile}
+              onRenameFile={renameFile}
             />
           }
           codeEditor={
@@ -243,6 +256,14 @@ const Index = () => {
                 Select a file to start coding
               </div>
             )
+          }
+          codeOutput={
+            <CodeOutput
+              code={activeFile?.content || ''}
+              language={activeFile?.language || 'python'}
+              input={codeInput}
+              onInputChange={setCodeInput}
+            />
           }
         />
       </div>

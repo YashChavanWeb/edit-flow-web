@@ -45,12 +45,12 @@ export const KeyboardShortcuts: React.FC<KeyboardShortcutsProps> = ({ onClose })
               <span className="text-gray-300 text-sm">{shortcut.description}</span>
               <div className="flex items-center space-x-1">
                 {shortcut.key.split(' + ').map((key, keyIndex) => (
-                  <React.Fragment key={keyIndex}>
-                    {keyIndex > 0 && <span className="text-gray-500 text-xs">+</span>}
+                  <div key={keyIndex} className="flex items-center">
+                    {keyIndex > 0 && <span className="text-gray-500 text-xs mx-1">+</span>}
                     <kbd className="bg-[#1e1e1e] border border-[#3e3e42] rounded px-2 py-1 text-xs text-gray-300">
                       {key}
                     </kbd>
-                  </React.Fragment>
+                  </div>
                 ))}
               </div>
             </div>

@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { File, Folder, Plus, Trash2, ChevronRight, ChevronDown } from 'lucide-react';
+import { File, Folder, Plus, Trash2, ChevronRight, ChevronDown, Edit3 } from 'lucide-react';
 import { FileItem } from '@/pages/Index';
 import { Button } from '@/components/ui/button';
 import {
@@ -16,6 +16,7 @@ interface FileExplorerProps {
   onFileSelect: (fileId: string) => void;
   onCreateFile: (name: string, language: 'python' | 'java' | 'cpp') => void;
   onDeleteFile: (fileId: string) => void;
+  onRenameFile: (fileId: string, newName: string) => void;
 }
 
 export const FileExplorer: React.FC<FileExplorerProps> = ({
@@ -24,8 +25,11 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
   onFileSelect,
   onCreateFile,
   onDeleteFile,
+  onRenameFile,
 }) => {
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
+  const [renamingFileId, setRenamingFileId] = useState<string | null>(null);
+  const [newFileName, setNewFileName] = useState('');
 
   const getFileIcon = (fileName: string) => {
     const extension = fileName.split('.').pop()?.toLowerCase();
@@ -52,6 +56,27 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
     const extensions = { python: 'py', java: 'java', cpp: 'cpp' };
     const fileName = `untitled.${extensions[language]}`;
     onCreateFile(fileName, language);
+  };
+
+  const handleRename = (fileId: string) => {
+    const file = files.find(f => f.id === fileId);
+    if (file) {
+      setRenamingFileId(fileId);
+      setNewFileName(file.name);
+    }
+  };
+
+  const confirmRename = (fileId: string) => {
+    if (newFileName.trim() && newFileName !== files.find(f => f.id === fileId)?.name) {
+      onRenameFile(fileId, newFileName.trim());
+    }
+    setRenamingFileId(null);
+    setNewFileName('');
+  };
+
+  const cancelRename = () => {
+    setRenamingFileId(null);
+    setNewFileName('');
   };
 
   return (
@@ -108,19 +133,47 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
               >
                 <div className="flex items-center space-x-2 flex-1 min-w-0">
                   {getFileIcon(file.name)}
-                  <span className="text-sm truncate">{file.name}</span>
+                  {renamingFileId === file.id ? (
+                    <input
+                      type="text"
+                      value={newFileName}
+                      onChange={(e) => setNewFileName(e.target.value)}
+                      onBlur={() => confirmRename(file.id)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') confirmRename(file.id);
+                        if (e.key === 'Escape') cancelRename();
+                      }}
+                      className="text-sm bg-[#1e1e1e] text-white border border-[#3e3e42] rounded px-1 flex-1"
+                      autoFocus
+                    />
+                  ) : (
+                    <span className="text-sm truncate">{file.name}</span>
+                  )}
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-4 w-4 p-0 opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-400"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDeleteFile(file.id);
-                  }}
-                >
-                  <Trash2 className="w-3 h-3" />
-                </Button>
+                <div className="flex items-center opacity-0 group-hover:opacity-100">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-4 w-4 p-0 text-gray-400 hover:text-blue-400"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRename(file.id);
+                    }}
+                  >
+                    <Edit3 className="w-3 h-3" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-4 w-4 p-0 text-gray-400 hover:text-red-400 ml-1"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDeleteFile(file.id);
+                    }}
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </Button>
+                </div>
               </div>
             ))}
           </div>
