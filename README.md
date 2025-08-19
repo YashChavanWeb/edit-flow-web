@@ -1,4 +1,4 @@
-# Online Code Editor
+# Online Code Editor 2
 
 A web-based code editor built with Lovable, designed for writing and executing code online.
 
